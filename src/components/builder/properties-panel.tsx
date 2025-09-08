@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type { ComponentSchema, LayoutSettings } from "@/types/builder"
 import { getComponentDefinition } from "@/lib/component-registry"
 import { LayoutPanel } from "./layout-panel"
@@ -30,15 +30,35 @@ export function PropertiesPanel({
     onUpdateLayout,
     onSelectComponent,
 }: PropertiesPanelProps) {
-    const selectedComponent = components.find((comp) => comp.id === selectedComponentId)
+    const findComponentById = (
+        list: ComponentSchema[],
+        id: string | null,
+    ): ComponentSchema | undefined => {
+        if (!id) return undefined
+        for (const comp of list) {
+            if (comp.id === id) return comp
+            if (comp.children && comp.children.length > 0) {
+                const found = findComponentById(comp.children, id)
+                if (found) return found
+            }
+        }
+        return undefined
+    }
+
+    const selectedComponent = findComponentById(components, selectedComponentId)
     const componentDef = selectedComponent ? getComponentDefinition(selectedComponent.type) : null
 
     const [localProps, setLocalProps] = useState<Record<string, any>>(selectedComponent?.props || {})
 
-    // Update local props when selected component changes
-    if (selectedComponent && JSON.stringify(localProps) !== JSON.stringify(selectedComponent.props)) {
-        setLocalProps(selectedComponent.props)
-    }
+    // Sync local props with the newly selected component
+    useEffect(() => {
+        if (selectedComponent) {
+            setLocalProps(selectedComponent.props)
+        } else {
+            setLocalProps({})
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedComponentId])
 
     const handlePropChange = (key: string, value: any) => {
         const newProps = { ...localProps, [key]: value }

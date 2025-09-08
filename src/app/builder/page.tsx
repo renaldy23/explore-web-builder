@@ -57,34 +57,88 @@ export default function BuilderPage() {
         }
     }, [pageSchema, currentProject])
 
-    const addComponent = (componentSchema: ComponentSchema) => {
-        setPageSchema((prev) => ({
-            ...prev,
-            components: [...prev.components, componentSchema],
-        }))
+    const addComponent = (componentSchema: ComponentSchema, parentId?: string) => {
+        setPageSchema((prev) => {
+            if (!parentId) {
+                return {
+                    ...prev,
+                    components: [...prev.components, componentSchema],
+                }
+            }
+
+            const addToParent = (list: ComponentSchema[]): ComponentSchema[] =>
+                list.map((comp) => {
+                    if (comp.id === parentId) {
+                        const children = comp.children ? [...comp.children, componentSchema] : [componentSchema]
+                        return { ...comp, children }
+                    }
+                    if (comp.children && comp.children.length > 0) {
+                        return { ...comp, children: addToParent(comp.children) }
+                    }
+                    return comp
+                })
+
+            return { ...prev, components: addToParent(prev.components) }
+        })
     }
 
     const updateComponent = (id: string, updatedProps: Record<string, any>) => {
+        const updateInTree = (list: ComponentSchema[]): ComponentSchema[] =>
+            list.map((comp) => {
+                if (comp.id === id) {
+                    return { ...comp, props: updatedProps }
+                }
+                if (comp.children && comp.children.length > 0) {
+                    return { ...comp, children: updateInTree(comp.children) }
+                }
+                return comp
+            })
+
         setPageSchema((prev) => ({
             ...prev,
-            components: prev.components.map((comp) => (comp.id === id ? { ...comp, props: updatedProps } : comp)),
+            components: updateInTree(prev.components),
         }))
     }
 
     const removeComponent = (id: string) => {
+        const removeFromTree = (list: ComponentSchema[]): ComponentSchema[] =>
+            list
+                .filter((comp) => comp.id !== id)
+                .map((comp) => (comp.children && comp.children.length > 0 ? { ...comp, children: removeFromTree(comp.children) } : comp))
+
         setPageSchema((prev) => ({
             ...prev,
-            components: prev.components.filter((comp) => comp.id !== id),
+            components: removeFromTree(prev.components),
         }))
         setSelectedComponentId(null)
     }
 
-    const reorderComponents = (startIndex: number, endIndex: number) => {
+    const reorderComponents = (startIndex: number, endIndex: number, parentId?: string) => {
+        const reorder = (arr: ComponentSchema[], from: number, to: number): ComponentSchema[] => {
+            const copy = [...arr]
+            const [moved] = copy.splice(from, 1)
+            copy.splice(to, 0, moved)
+            return copy
+        }
+
         setPageSchema((prev) => {
-            const newComponents = [...prev.components]
-            const [removed] = newComponents.splice(startIndex, 1)
-            newComponents.splice(endIndex, 0, removed)
-            return { ...prev, components: newComponents }
+            if (!parentId) {
+                return { ...prev, components: reorder(prev.components, startIndex, endIndex) }
+            }
+
+            const applyReorder = (list: ComponentSchema[]): ComponentSchema[] =>
+                list.map((comp) => {
+                    if (comp.id === parentId) {
+                        const children = comp.children ? reorder(comp.children, startIndex, endIndex) : []
+                        return { ...comp, children }
+                    }
+                    if (comp.children && comp.children.length > 0) {
+                        return { ...comp, children: applyReorder(comp.children) }
+                    }
+                    return comp
+                })
+
+            return { ...prev, components: applyReorder(prev.components) }
         })
     }
 

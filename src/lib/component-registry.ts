@@ -65,6 +65,7 @@ export const componentRegistry: ComponentDefinition[] = [
       fontSize: "base",
       textAlign: "left",
       color: "foreground",
+      customColor: "",
     },
     propSchema: [
       {
@@ -93,6 +94,12 @@ export const componentRegistry: ComponentDefinition[] = [
         type: "color",
         defaultValue: "foreground",
       },
+      {
+        key: "customColor",
+        label: "Custom Color (hex)",
+        type: "color",
+        defaultValue: "",
+      },
     ],
   },
   {
@@ -105,6 +112,11 @@ export const componentRegistry: ComponentDefinition[] = [
       variant: "default",
       size: "default",
       link: "#",
+      textColor: "",
+      backgroundColor: "",
+      borderWidth: 0,
+      borderColor: "",
+      borderRadius: "md",
     },
     propSchema: [
       {
@@ -128,6 +140,37 @@ export const componentRegistry: ComponentDefinition[] = [
         defaultValue: "default",
       },
       { key: "link", label: "Link", type: "text", defaultValue: "#" },
+      {
+        key: "textColor",
+        label: "Text Color",
+        type: "color",
+        defaultValue: "",
+      },
+      {
+        key: "backgroundColor",
+        label: "Background Color",
+        type: "color",
+        defaultValue: "",
+      },
+      {
+        key: "borderWidth",
+        label: "Border Width (px)",
+        type: "number",
+        defaultValue: 0,
+      },
+      {
+        key: "borderColor",
+        label: "Border Color",
+        type: "color",
+        defaultValue: "",
+      },
+      {
+        key: "borderRadius",
+        label: "Border Radius",
+        type: "select",
+        options: ["none", "sm", "md", "lg", "full"],
+        defaultValue: "md",
+      },
     ],
   },
   {
@@ -141,6 +184,8 @@ export const componentRegistry: ComponentDefinition[] = [
       width: 400,
       height: 300,
       rounded: false,
+      mode: "intrinsic",
+      objectFit: "cover",
     },
     propSchema: [
       { key: "src", label: "Image URL", type: "image", defaultValue: "" },
@@ -152,6 +197,20 @@ export const componentRegistry: ComponentDefinition[] = [
         label: "Rounded",
         type: "boolean",
         defaultValue: false,
+      },
+      {
+        key: "mode",
+        label: "Sizing Mode",
+        type: "select",
+        options: ["intrinsic", "fill"],
+        defaultValue: "intrinsic",
+      },
+      {
+        key: "objectFit",
+        label: "Object Fit",
+        type: "select",
+        options: ["cover", "contain", "fill", "none", "scale-down"],
+        defaultValue: "cover",
       },
     ],
   },

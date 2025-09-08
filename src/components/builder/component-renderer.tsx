@@ -77,39 +77,67 @@ export function ComponentRenderer({ schema, isPreview = false }: ComponentRender
 
     switch (type) {
         case "container":
-            return (
-                <div
-                    className={`${getLayoutClasses(
-                        props.layout,
-                        props.gap,
-                        props.alignment,
-                        props.justifyContent,
-                        props.padding,
-                    )} ${getStyleClasses(props.backgroundColor, props.borderRadius)}`}
-                >
-                    {children?.map((child) => (
-                        <ComponentRenderer key={child.id} schema={child} isPreview={isPreview} />
-                    ))}
-                </div>
-            )
+            {
+                const tokenBg = [
+                    "transparent",
+                    "background",
+                    "foreground",
+                    "primary",
+                    "secondary",
+                    "muted",
+                    "accent",
+                ]
+                const needsInlineBg = props.backgroundColor && !tokenBg.includes(props.backgroundColor)
+                const inlineStyle = needsInlineBg ? { backgroundColor: props.backgroundColor as string } : undefined
+                return (
+                    <div
+                        className={`${getLayoutClasses(
+                            props.layout,
+                            props.gap,
+                            props.alignment,
+                            props.justifyContent,
+                            props.padding,
+                        )} ${getStyleClasses(props.backgroundColor, props.borderRadius)}`}
+                        style={inlineStyle}
+                    >
+                        {children?.map((child) => (
+                            <ComponentRenderer key={child.id} schema={child} isPreview={isPreview} />
+                        ))}
+                    </div>
+                )
+            }
 
         case "section":
-            return (
-                <section
-                    className={`${getLayoutClasses(
-                        props.layout,
-                        props.gap,
-                        props.alignment,
-                        props.justifyContent,
-                        props.padding,
-                    )} ${getStyleClasses(props.backgroundColor, props.borderRadius)}`}
-                >
-                    {props.showTitle && props.title && <h2 className="text-2xl font-bold mb-4">{props.title}</h2>}
-                    {children?.map((child) => (
-                        <ComponentRenderer key={child.id} schema={child} isPreview={isPreview} />
-                    ))}
-                </section>
-            )
+            {
+                const tokenBg = [
+                    "transparent",
+                    "background",
+                    "foreground",
+                    "primary",
+                    "secondary",
+                    "muted",
+                    "accent",
+                ]
+                const needsInlineBg = props.backgroundColor && !tokenBg.includes(props.backgroundColor)
+                const inlineStyle = needsInlineBg ? { backgroundColor: props.backgroundColor as string } : undefined
+                return (
+                    <section
+                        className={`${getLayoutClasses(
+                            props.layout,
+                            props.gap,
+                            props.alignment,
+                            props.justifyContent,
+                            props.padding,
+                        )} ${getStyleClasses(props.backgroundColor, props.borderRadius)}`}
+                        style={inlineStyle}
+                    >
+                        {props.showTitle && props.title && <h2 className="text-2xl font-bold mb-4">{props.title}</h2>}
+                        {children?.map((child) => (
+                            <ComponentRenderer key={child.id} schema={child} isPreview={isPreview} />
+                        ))}
+                    </section>
+                )
+            }
 
         case "hero":
             return (
@@ -132,22 +160,64 @@ export function ComponentRenderer({ schema, isPreview = false }: ComponentRender
             )
 
         case "text":
-            return (
-                <div className={`text-${props.fontSize} text-${props.textAlign} text-${props.color} p-4`}>
-                    <div dangerouslySetInnerHTML={{ __html: props.content.replace(/\n/g, "<br>") }} />
-                </div>
-            )
+            {
+                const tokenColor = ["foreground", "primary", "secondary", "muted", "accent"]
+                const useInline = props.customColor && props.customColor !== "" && !tokenColor.includes(props.customColor)
+                const style = useInline ? { color: props.customColor as string } : undefined
+                const colorClass = tokenColor.includes(props.color) ? `text-${props.color}` : ""
+                return (
+                    <div className={`text-${props.fontSize} text-${props.textAlign} ${colorClass} p-4`} style={style}>
+                        <div dangerouslySetInnerHTML={{ __html: props.content.replace(/\n/g, "<br>") }} />
+                    </div>
+                )
+            }
 
         case "button":
-            return (
-                <div className="p-4">
-                    <Button variant={props.variant} size={props.size} asChild>
-                        <a href={isPreview ? props.link : "#"}>{props.text}</a>
-                    </Button>
-                </div>
-            )
+            {
+                const radiusClasses: Record<string, string> = {
+                    none: "rounded-none",
+                    sm: "rounded-sm",
+                    md: "rounded-md",
+                    lg: "rounded-lg",
+                    full: "rounded-full",
+                }
+                console.log(props.backgroundColor)
+                const inlineStyle: React.CSSProperties = {
+                    color: props.textColor || undefined,
+                    backgroundColor: props.backgroundColor || undefined,
+                    borderWidth: props.borderWidth ? Number(props.borderWidth) : undefined,
+                    borderColor: props.borderColor || undefined,
+                    borderStyle: props.borderWidth ? "solid" : undefined,
+                }
+                return (
+                    <div className="p-4">
+                        <Button
+                            variant={props.variant}
+                            size={props.size}
+                            asChild
+                            className={radiusClasses[props.borderRadius || "md"]}
+                            style={inlineStyle}
+                        >
+                            <a href={isPreview ? props.link : "#"}>{props.text}</a>
+                        </Button>
+                    </div>
+                )
+            }
 
         case "image":
+            if (props.mode === "fill") {
+                return (
+                    <div className="relative w-full h-full min-h-[200px]">
+                        <Image
+                            src={props.src || "/placeholder.svg"}
+                            alt={props.alt}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 50vw"
+                            className={`${props.rounded ? "rounded-lg" : ""} object-${props.objectFit || "cover"}`}
+                        />
+                    </div>
+                )
+            }
             return (
                 <div className="p-4">
                     <Image
@@ -155,7 +225,7 @@ export function ComponentRenderer({ schema, isPreview = false }: ComponentRender
                         alt={props.alt}
                         width={props.width}
                         height={props.height}
-                        className={props.rounded ? "rounded-lg" : ""}
+                        className={`${props.rounded ? "rounded-lg" : ""} object-${props.objectFit || "cover"}`}
                     />
                 </div>
             )

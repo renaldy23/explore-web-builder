@@ -43,6 +43,96 @@ function NestedComponent({
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
     const isContainer = component.type === "container" || component.type === "section"
 
+    const getContainerLayoutClasses = () => {
+        const layout = component.props?.layout
+        const gap = component.props?.gap
+        const alignment = component.props?.alignment
+        const justifyContent = component.props?.justifyContent
+        const padding = component.props?.padding
+
+        const layoutClasses: Record<string, string> = {
+            horizontal: "flex flex-row",
+            vertical: "flex flex-col",
+            "grid-2": "grid grid-cols-1 md:grid-cols-2",
+            "grid-3": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
+            wrap: "flex flex-wrap",
+        }
+
+        const gapClasses: Record<string, string> = {
+            none: "gap-0",
+            sm: "gap-2",
+            md: "gap-4",
+            lg: "gap-6",
+            xl: "gap-8",
+        }
+
+        const alignmentClasses: Record<string, string> = {
+            start: "items-start",
+            center: "items-center",
+            end: "items-end",
+            stretch: "items-stretch",
+        }
+
+        const justifyClasses: Record<string, string> = {
+            start: "justify-start",
+            center: "justify-center",
+            end: "justify-end",
+            between: "justify-between",
+            around: "justify-around",
+        }
+
+        const paddingClasses: Record<string, string> = {
+            none: "p-0",
+            sm: "p-2",
+            md: "p-4",
+            lg: "p-6",
+            xl: "p-8",
+        }
+
+        return `${layoutClasses[layout] || "flex flex-col"} ${gapClasses[gap] || "gap-4"} ${alignmentClasses[alignment] || "items-stretch"} ${justifyClasses[justifyContent] || "justify-start"} ${paddingClasses[padding] || "p-4"}`
+    }
+
+    const getContainerStyleClasses = () => {
+        const backgroundColor = component.props?.backgroundColor
+        const borderRadius = component.props?.borderRadius
+
+        const bgClasses: Record<string, string> = {
+            transparent: "bg-transparent",
+            background: "bg-background",
+            foreground: "bg-foreground",
+            primary: "bg-primary",
+            secondary: "bg-secondary",
+            muted: "bg-muted",
+            accent: "bg-accent",
+        }
+
+        const radiusClasses: Record<string, string> = {
+            none: "rounded-none",
+            sm: "rounded-sm",
+            md: "rounded-md",
+            lg: "rounded-lg",
+            full: "rounded-full",
+        }
+
+        return `${bgClasses[backgroundColor] || ""} ${radiusClasses[borderRadius] || "rounded-none"}`
+    }
+
+    const getContainerInlineStyle = (): React.CSSProperties | undefined => {
+        const backgroundColor = component.props?.backgroundColor as string | undefined
+        if (!backgroundColor) return undefined
+        const tokenBg = [
+            "transparent",
+            "background",
+            "foreground",
+            "primary",
+            "secondary",
+            "muted",
+            "accent",
+        ]
+        const isToken = tokenBg.includes(backgroundColor)
+        return isToken ? undefined : { backgroundColor }
+    }
+
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault()
         e.stopPropagation()
@@ -154,7 +244,21 @@ function NestedComponent({
                     onDragOver={handleDragOver}
                 >
                     {component.children && component.children.length > 0 ? (
-                        <ComponentRenderer schema={component} />
+                        <div className={cn(getContainerLayoutClasses(), getContainerStyleClasses())} style={getContainerInlineStyle()}>
+                            {component.children.map((child, childIndex) => (
+                                <NestedComponent
+                                    key={child.id}
+                                    component={child}
+                                    index={childIndex}
+                                    selectedComponentId={selectedComponentId}
+                                    onSelectComponent={onSelectComponent}
+                                    onRemoveComponent={onRemoveComponent}
+                                    onAddComponent={onAddComponent}
+                                    onReorderComponents={onReorderComponents}
+                                    parentId={component.id}
+                                />
+                            ))}
+                        </div>
                     ) : (
                         <div className="flex items-center justify-center h-24 text-muted-foreground text-sm">
                             Drop components here
@@ -269,7 +373,7 @@ export function BuilderCanvas({
                         </div>
                     </div>
                 ) : (
-                    <div className={cn("min-h-full", getLayoutClasses())}>
+                    <div className={cn("min-h-full pb-40", getLayoutClasses())}>
                         {components.map((component, index) => (
                             <NestedComponent
                                 key={component.id}
@@ -282,6 +386,8 @@ export function BuilderCanvas({
                                 onReorderComponents={onReorderComponents}
                             />
                         ))}
+                        {/* Extra spacer to make it easier to drop near the bottom */}
+                        <div className="h-40" />
                     </div>
                 )}
             </div>
