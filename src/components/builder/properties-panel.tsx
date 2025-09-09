@@ -17,6 +17,7 @@ interface PropertiesPanelProps {
     selectedComponentId: string | null
     components: ComponentSchema[]
     layout: LayoutSettings
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onUpdateComponent: (id: string, props: Record<string, any>) => void
     onUpdateLayout: (layout: LayoutSettings) => void
     onSelectComponent: (id: string | null) => void
@@ -48,6 +49,7 @@ export function PropertiesPanel({
     const selectedComponent = findComponentById(components, selectedComponentId)
     const componentDef = selectedComponent ? getComponentDefinition(selectedComponent.type) : null
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [localProps, setLocalProps] = useState<Record<string, any>>(selectedComponent?.props || {})
 
     // Sync local props with the newly selected component
@@ -60,6 +62,7 @@ export function PropertiesPanel({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedComponentId])
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handlePropChange = (key: string, value: any) => {
         const newProps = { ...localProps, [key]: value }
         setLocalProps(newProps)
@@ -68,8 +71,9 @@ export function PropertiesPanel({
         }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const renderPropInput = (propSchema: any) => {
-        const { key, label, type, options, defaultValue } = propSchema
+        const { key, label, type, options, defaultValue, description } = propSchema
         const currentValue = localProps[key] ?? defaultValue
 
         switch (type) {
@@ -77,6 +81,7 @@ export function PropertiesPanel({
                 return (
                     <div key={key} className="space-y-2">
                         <Label htmlFor={key}>{label}</Label>
+                        {description && <p className="text-sm text-muted-foreground">{description}</p>}
                         <Input
                             id={key}
                             value={currentValue || ""}
@@ -90,6 +95,7 @@ export function PropertiesPanel({
                 return (
                     <div key={key} className="space-y-2">
                         <Label htmlFor={key}>{label}</Label>
+                        {description && <p className="text-sm text-muted-foreground">{description}</p>}
                         <Input
                             id={key}
                             type="number"
@@ -103,11 +109,13 @@ export function PropertiesPanel({
                 return (
                     <div key={key} className="space-y-2">
                         <Label htmlFor={key}>{label}</Label>
+                        {description && <p className="text-sm text-muted-foreground">{description}</p>}
                         <Select value={currentValue} onValueChange={(value) => handlePropChange(key, value)}>
                             <SelectTrigger>
                                 <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
                             </SelectTrigger>
                             <SelectContent>
+                                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                                 {options?.map((option: string) => (
                                     <SelectItem key={option} value={option}>
                                         {option}
@@ -122,6 +130,7 @@ export function PropertiesPanel({
                 return (
                     <div key={key} className="flex items-center justify-between">
                         <Label htmlFor={key}>{label}</Label>
+                        {description && <p className="text-sm text-muted-foreground">{description}</p>}
                         <Switch
                             id={key}
                             checked={currentValue || false}
@@ -134,6 +143,7 @@ export function PropertiesPanel({
                 return (
                     <div key={key} className="space-y-2">
                         <Label htmlFor={key}>{label}</Label>
+                        {description && <p className="text-sm text-muted-foreground">{description}</p>}
                         <div className="flex gap-2">
                             <Input
                                 id={key}
@@ -155,6 +165,7 @@ export function PropertiesPanel({
                 return (
                     <div key={key} className="space-y-2">
                         <Label htmlFor={key}>{label}</Label>
+                        {description && <p className="text-sm text-muted-foreground">{description}</p>}
                         <Input
                             id={key}
                             value={currentValue || ""}

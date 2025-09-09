@@ -22,6 +22,7 @@ export interface PropSchema {
   type: "text" | "number" | "color" | "select" | "boolean" | "image";
   options?: string[];
   defaultValue: any;
+  description?: string;
 }
 
 export interface PageSchema {
@@ -33,6 +34,7 @@ export interface PageSchema {
     title: string;
     description: string;
   };
+  variables?: Record<string, any>;
 }
 
 export interface LayoutSettings {
@@ -48,4 +50,10 @@ export interface ContainerLayoutSettings {
   alignment: "start" | "center" | "end" | "stretch";
   justifyContent: "start" | "center" | "end" | "between" | "around";
   padding: "none" | "sm" | "md" | "lg" | "xl";
+}
+
+export interface VariableProps {
+  name: string;
+  value: any;
+  type: "string" | "number" | "boolean" | "object" | "array";
 }

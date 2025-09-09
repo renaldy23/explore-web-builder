@@ -14,9 +14,13 @@ interface BuilderCanvasProps {
     selectedComponentId: string | null
     onAddComponent: (component: ComponentSchema, parentId?: string) => void
     onSelectComponent: (id: string | null) => void
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onUpdateComponent: (id: string, props: Record<string, any>) => void
     onRemoveComponent: (id: string) => void
     onReorderComponents: (startIndex: number, endIndex: number, parentId?: string) => void
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    variables?: Record<string, any>
+    onVariableChange?: (name: string, value: any) => void
 }
 
 interface NestedComponentProps {
@@ -28,6 +32,10 @@ interface NestedComponentProps {
     onAddComponent: (component: ComponentSchema, parentId?: string) => void
     onReorderComponents: (startIndex: number, endIndex: number, parentId?: string) => void
     parentId?: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onUpdateComponent: (id: string, props: Record<string, any>) => void
+    variables?: Record<string, any>
+    onVariableChange?: (name: string, value: any) => void
 }
 
 function NestedComponent({
@@ -39,9 +47,12 @@ function NestedComponent({
     onAddComponent,
     onReorderComponents,
     parentId,
+    onUpdateComponent,
+    variables,
+    onVariableChange,
 }: NestedComponentProps) {
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
-    const isContainer = component.type === "container" || component.type === "section"
+    const isContainer = component.type === "container" || component.type === "section" || component.type === "repeater" || component.type === "card"
 
     const getContainerLayoutClasses = () => {
         const layout = component.props?.layout
@@ -134,6 +145,7 @@ function NestedComponent({
     }
 
     const handleDrop = (e: React.DragEvent) => {
+        console.log("handleDrop", e.dataTransfer.getData("application/json"))
         e.preventDefault()
         e.stopPropagation()
 
@@ -145,6 +157,7 @@ function NestedComponent({
                     id: `${componentDef.type}-${Date.now()}`,
                     type: componentDef.type,
                     props: { ...componentDef.defaultProps },
+                    children: componentDef.type === "container" || componentDef.type === "section" || componentDef.type === "repeater" ? [] : undefined,
                 }
                 onAddComponent(newComponent, component.id)
             } catch (error) {
@@ -206,20 +219,6 @@ function NestedComponent({
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0 cursor-grab active:cursor-grabbing">
                         <GripVertical className="w-3 h-3" />
                     </Button>
-                    {isContainer && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                // This will be handled by drag and drop from sidebar
-                            }}
-                            title="Drop components here"
-                        >
-                            <Plus className="w-3 h-3" />
-                        </Button>
-                    )}
                     <Button
                         variant="ghost"
                         size="sm"
@@ -255,6 +254,9 @@ function NestedComponent({
                                     onRemoveComponent={onRemoveComponent}
                                     onAddComponent={onAddComponent}
                                     onReorderComponents={onReorderComponents}
+                                    onUpdateComponent={onUpdateComponent}
+                                    variables={variables}
+                                    onVariableChange={onVariableChange}
                                     parentId={component.id}
                                 />
                             ))}
@@ -266,7 +268,7 @@ function NestedComponent({
                     )}
                 </div>
             ) : (
-                <ComponentRenderer schema={component} />
+                <ComponentRenderer schema={component} onUpdateComponent={onUpdateComponent} variables={variables} onVariableChange={onVariableChange} />
             )}
         </div>
     )
@@ -278,8 +280,11 @@ export function BuilderCanvas({
     selectedComponentId,
     onAddComponent,
     onSelectComponent,
+    onUpdateComponent,
     onRemoveComponent,
     onReorderComponents,
+    variables,
+    onVariableChange,
 }: BuilderCanvasProps) {
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 
@@ -341,7 +346,7 @@ export function BuilderCanvas({
                     id: `${componentDef.type}-${Date.now()}`,
                     type: componentDef.type,
                     props: { ...componentDef.defaultProps },
-                    children: componentDef.type === "container" || componentDef.type === "section" ? [] : undefined,
+                    children: componentDef.type === "container" || componentDef.type === "section" || componentDef.type === "repeater" ? [] : undefined,
                 }
                 onAddComponent(newComponent)
             } catch (error) {
@@ -384,6 +389,9 @@ export function BuilderCanvas({
                                 onRemoveComponent={onRemoveComponent}
                                 onAddComponent={onAddComponent}
                                 onReorderComponents={onReorderComponents}
+                                onUpdateComponent={onUpdateComponent}
+                                variables={variables}
+                                onVariableChange={onVariableChange}
                             />
                         ))}
                         {/* Extra spacer to make it easier to drop near the bottom */}

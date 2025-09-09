@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Eye, Save, Download, Upload } from "lucide-react"
 import Link from "next/link"
 import { getProject, updateProject, exportProject, importProject, type Project } from "@/lib/storage"
+import { DataDialog } from "@/components/builder/data-dialog"
 
 export default function BuilderPage() {
     const searchParams = useSearchParams()
@@ -30,12 +31,15 @@ export default function BuilderPage() {
             title: "New Page",
             description: "Created with Web Builder",
         },
+        variables: {},
     })
 
     const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null)
     const [currentProject, setCurrentProject] = useState<Project | null>(null)
     const [showSaveDialog, setShowSaveDialog] = useState(false)
+    const [showDataDialog, setShowDataDialog] = useState(false)
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+    const [variables, setVariables] = useState<Record<string, any>>({})
 
     // Load project on mount if ID is provided
     useEffect(() => {
@@ -43,6 +47,7 @@ export default function BuilderPage() {
             const project = getProject(projectId)
             if (project) {
                 setPageSchema(project.schema)
+                setVariables(project.schema.variables || {})
                 setCurrentProject(project)
                 setHasUnsavedChanges(false)
             }
@@ -98,6 +103,12 @@ export default function BuilderPage() {
             ...prev,
             components: updateInTree(prev.components),
         }))
+    }
+
+    const handleVariableChange = (name: string, value: any) => {
+        setVariables((prev) => ({ ...prev, [name]: value }))
+        // Keep variables in schema so export/import persists them
+        setPageSchema((prev) => ({ ...prev, variables: { ...(prev.variables || {}), [name]: value } }))
     }
 
     const removeComponent = (id: string) => {
@@ -178,6 +189,7 @@ export default function BuilderPage() {
                     setCurrentProject(project)
                     setHasUnsavedChanges(false)
                 } catch (error) {
+                    console.error(error)
                 }
             }
         }
@@ -208,6 +220,9 @@ export default function BuilderPage() {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setShowDataDialog(true)}>
+                        Data
+                    </Button>
                     <Button variant="outline" size="sm" onClick={handleImport}>
                         <Upload className="w-4 h-4 mr-2" />
                         Import
@@ -246,6 +261,8 @@ export default function BuilderPage() {
                     onUpdateComponent={updateComponent}
                     onRemoveComponent={removeComponent}
                     onReorderComponents={reorderComponents}
+                    variables={variables}
+                    onVariableChange={handleVariableChange}
                 />
 
                 {/* Properties Panel */}
@@ -268,6 +285,16 @@ export default function BuilderPage() {
                     setCurrentProject(project)
                     setHasUnsavedChanges(false)
                     setShowSaveDialog(false)
+                }}
+            />
+
+            <DataDialog
+                open={showDataDialog}
+                onOpenChange={setShowDataDialog}
+                variables={variables}
+                onSave={(vars) => {
+                    setVariables(vars)
+                    setPageSchema((prev) => ({ ...prev, variables: vars }))
                 }}
             />
         </div>

@@ -10,6 +10,7 @@ export interface Project {
   updatedAt: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function migratePageSchema(schema: any): PageSchema {
   // If layout is missing, add default layout settings
   if (!schema.layout) {
@@ -77,6 +78,7 @@ export function getProjects(): Project[] {
     const stored = localStorage.getItem(STORAGE_KEY);
     const projects = stored ? JSON.parse(stored) : [];
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return projects.map((project: any) => ({
       ...project,
       schema: migratePageSchema(project.schema),
@@ -127,6 +129,7 @@ export function importProject(file: File): Promise<Project> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     reader.onload = (e) => {
       try {
         const project = JSON.parse(e.target?.result as string) as Project;

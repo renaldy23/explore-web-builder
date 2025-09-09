@@ -24,16 +24,24 @@ export default function PreviewPage() {
     const [pageSchema, setPageSchema] = useState<PageSchema | null>(null)
     const [viewport, setViewport] = useState<ViewportSize>("desktop")
     const [isLoading, setIsLoading] = useState(true)
+    const [variables, setVariables] = useState<Record<string, any>>({})
 
     useEffect(() => {
         if (projectId) {
             const project = getProject(projectId)
             if (project) {
                 setPageSchema(project.schema)
+                setVariables(project.schema.variables || {})
             }
         }
         setIsLoading(false)
     }, [projectId])
+
+
+
+    useEffect(() => {
+        console.log("pageSchema", pageSchema)
+    }, [pageSchema])
 
     const getLayoutClasses = () => {
         if (!pageSchema?.layout) return "space-y-4"
@@ -108,6 +116,15 @@ export default function PreviewPage() {
                     </Button>
                 </div>
             </div>
+        )
+    }
+
+    const handleVariableChange = (name: string, value: any) => {
+        setVariables((prev) => ({ ...prev, [name]: value }))
+        setPageSchema((prev) =>
+            prev
+                ? { ...prev, variables: { ...(prev.variables || {}), [name]: value } }
+                : prev
         )
     }
 
@@ -186,7 +203,13 @@ export default function PreviewPage() {
                         ) : (
                             <div className={cn("min-h-screen", getLayoutClasses())}>
                                 {pageSchema.components.map((component) => (
-                                    <ComponentRenderer key={component.id} schema={component} isPreview={true} />
+                                    <ComponentRenderer
+                                        key={component.id}
+                                        schema={component}
+                                        isPreview={true}
+                                        variables={variables}
+                                        onVariableChange={handleVariableChange}
+                                    />
                                 ))}
                             </div>
                         )}
