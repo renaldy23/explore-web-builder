@@ -221,9 +221,9 @@ export default function BuilderPage() {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setShowDataDialog(true)}>
+                    {/* <Button variant="outline" size="sm" onClick={() => setShowDataDialog(true)}>
                         Data
-                    </Button>
+                    </Button> */}
                     <Button variant="outline" size="sm" onClick={handleImport}>
                         <Upload className="w-4 h-4 mr-2" />
                         Import
