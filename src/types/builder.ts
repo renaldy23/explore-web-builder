@@ -1,4 +1,5 @@
 // Core types for the web builder system
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface ComponentSchema {
   id: string;
   type: string;

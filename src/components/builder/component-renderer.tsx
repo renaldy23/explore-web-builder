@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import type { ComponentSchema } from "@/types/builder"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"

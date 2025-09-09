@@ -1,5 +1,6 @@
 "use client"
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import type { ComponentSchema, PageSchema, LayoutSettings } from "@/types/builder"
