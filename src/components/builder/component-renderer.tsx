@@ -247,7 +247,7 @@ export function ComponentRenderer({ schema, isPreview = false, onUpdateComponent
                         return value !== undefined && value !== null ? String(value) : ""
                     })
                     : props.content
-                let isVariable = variablePattern.test(props.content)
+                const isVariable = variablePattern.test(props.content)
                 return (
                     <div className={`text-${props.fontSize} text-${props.textAlign} ${colorClass} p-4`} style={style}>
                         {
